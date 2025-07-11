@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To-Do List</title>
+  <style>
+body {
+    background: #f7f7fa;
+    font-family: 'Segoe UI', sans-serif;
+}
+.task-container {
+    max-width: 700px;
+    margin: 30px auto;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 4px 32px rgba(80, 0, 200, 0.07);
+    overflow: hidden;
+}
+.header {
+    background: #7b2ff2;
+    color: #fff;
+    padding: 32px 32px 24px 32px;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+}
+.header h1 {
+    margin: 0 0 6px 0;
+    font-size: 2rem;
+    font-weight: bold;
+}
+.header p {
+    margin: 0;
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+.add-task-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin: 24px 32px 0 32px;
+}
+.add-task-row input,
+.add-task-row select {
+    padding: 10px 16px;
+    border: 1px solid #eee;
+    border-radius: 24px;
+    font-size: 1rem;
+    outline: none;
+}
+.add-task-row input {
+    flex: 1;
+}
+.add-task-row select {
+    width: 160px;
+}
+.add-task-row button {
+    background: #7b2ff2;
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 24px;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.add-task-row button:hover {
+    background: #5f1bb7;
+}
+.section-title {
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin: 32px 32px 10px 32px;
+}
+.task-list {
+    margin: 0 32px;
+}
+.task-card {
+    background: #fafaff;
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    box-shadow: 0 1px 4px rgba(80,0,200,0.04);
+    position: relative;
+}
+.task-details {
+    flex: 1;
+}
+.task-title {
+    font-weight: 500;
+    font-size: 1.05rem;
+}
+.badge {
+    padding: 2px 12px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    font-weight: 500;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+.badge.high { background: #fbe4ea; color: #b80042; }
+.badge.medium { background: #fff7d7; color: #c5a100; }
+.badge.low { background: #e8fbe4; color: #2a7a2e; }
+.task-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.strikethrough {
+    text-decoration: line-through;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+}
+@media (max-width: 800px) {
+    .task-container { max-width: 98vw; }
+    .add-task-row, .section-title, .task-list { margin-left: 12px; margin-right: 12px; }
+}
+  </style>
+</head>
+<body>
+<div class="task-container">
+    <div class="header">
+        <h1>My Tasks</h1>
+        <p>Organize your day, achieve your goals</p>
+    </div>
+    <form class="add-task-row" method="post">
+        {% csrf_token %}
+        <input type="text" name="task" placeholder="Add a new task..." required>
+        <select name="priority">
+            <option value="medium">Medium Priority</option>
+            <option value="high">High Priority</option>
+            <option value="low">Low Priority</option>
+        </select>
+        <button type="submit">Add Task</button>
+    </form>
+    <div class="section-title">Today's Tasks</div>
+    <div class="task-list">
+        {% for task in tasks %}
+        <div class="task-card">
+            <input type="checkbox" class="task-checkbox" data-redirect-url="/remove_task/{{task.id}}/">
+            <div class="task-details">
+                <div class="task-title">{{ task.todo }}</div>
+            </div>
+            <span class="badge {% if task.priority == 'high' %}high{% elif task.priority == 'medium' %}medium{% else %}low{% endif %}">
+                {{ task.priority }}
+            </span>
+        </div>
+        {% empty %}
+        <div>No tasks for today!</div>
+        {% endfor %}
+    </div>
+    <div style="display: flex; align-items: center; justify-content: flex-end; background: #fafaff; padding: 12px 32px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px; border-top: 1px solid #eee;">
+      <form method="get" style="margin: 0;">
+          <select name="sort" onchange="this.form.submit()" style="background: #fff; border: 1px solid #eee; border-radius: 20px; padding: 6px 18px; font-size: 1rem; color: #7b2ff2; cursor: pointer;">
+              <option value="">Sort</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+          </select>
+      </form>
+  </div>  
+</div>
+<script>
+  document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+          const taskTitle = this.closest('.task-card').querySelector('.task-title');
+          if (this.checked) {
+              taskTitle.classList.add('strikethrough');
+              setTimeout(() => {
+                  window.location.href = this.dataset.redirectUrl;
+              }, 500);
+          }
+      });
+  });
+</script>
+</body>
+</html>
